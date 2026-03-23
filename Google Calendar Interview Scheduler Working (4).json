@@ -1,0 +1,1060 @@
+{
+  "name": "Google Calendar Interview Scheduler Working",
+  "nodes": [
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "dmohanraj@mondee.com",
+          "mode": "list",
+          "cachedResultName": "dmohanraj@mondee.com"
+        },
+        "start": "={{ $('Code').item.json.nextSlot }}",
+        "end": "={{ $('Code').item.json.endSlot }}",
+        "additionalFields": {
+          "attendees": [],
+          "conferenceDataUi": {
+            "conferenceDataValues": {
+              "conferenceSolution": "hangoutsMeet"
+            }
+          },
+          "description": "=Interview scheduled via automation for {{ $('Webhook').item.json.body.NAME }}",
+          "location": "Google Meet / Online",
+          "summary": "=Interview with {{ $('Webhook').item.json.body.NAME }} for {{ $('Webhook').item.json.body.ROLE }}",
+          "visibility": "public"
+        }
+      },
+      "id": "d21b2479-1c6f-4478-be77-5fe372045ef0",
+      "name": "Google Calendar",
+      "type": "n8n-nodes-base.googleCalendar",
+      "position": [
+        256,
+        144
+      ],
+      "typeVersion": 1.3,
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "4lLJeEdbwhdi5otK",
+          "name": "DmondeeCldr"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Webhook').item.json.body.EMAIL }}",
+        "subject": "Interview Details",
+        "emailType": "text",
+        "message": "={{ $json.output.body }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "ca205edd-3544-4397-be91-896323f3d626",
+      "name": "Gmail",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        832,
+        144
+      ],
+      "webhookId": "040572a6-f9d0-4169-8ab9-ff47cf17fde7",
+      "typeVersion": 2.1,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "OHK7TR827mAgYXuO",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Write a clean and professional interview invitation email.\n\nDetails:\nName: {{ $('Webhook').item.json.body.NAME }}\nSkills: {{ $('Webhook').item.json.body.SKILLS }}\nDate & Time: {{$('Code').item.json.readableTime}}\nCalendar Link:\nMeeting Link: {{$json.hangoutLink}}\n\n📌 A calendar invitation has been sent to your email.\nIf you don’t see it in your calendar, please click “Add to calendar” in the invite.\n\nInstructions:\n- Keep it short and professional\n- Use simple sentences\n- Do not repeat information\n- Do not add extra explanation\n- Output only the email body\n\nFormat:\n\nHello {{ $('Webhook').item.json.body.NAME }},\n\nWe are Mondee, a global travel technology company.\n\nCongratulations! Your profile has been shortlisted.\n\nYour interview details:\nDate & Time: {{ $('Code').item.json.readableTime }}\n\nJoin Meeting:\n{{$json.hangoutLink}}\n\n📌 A calendar invitation has been sent to your email.\nIf you don’t see it in your calendar, please click “Add to calendar” in the invite.\n\n\nPlease join on time.\n\nBest regards,  \nDhanush  \nMondee",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are a professional HR email writer.  Rules: - Keep sentences short - Keep tone professional - Avoid long paragraphs - No extra text outside email"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "id": "3b734fcd-1409-40a3-a98c-8f54d6622c81",
+      "name": "Basic LLM Chain",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "position": [
+        480,
+        144
+      ],
+      "typeVersion": 1.7
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"body\": \"\"\n}"
+      },
+      "id": "674ad275-89cf-4430-b229-350d4e045d9f",
+      "name": "Structured Output Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "position": [
+        624,
+        352
+      ],
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "jsCode": "// Grab fresh Date/Time DIRECTLY from the Webhook payload, not the sheet!\nconst rawDate = $('Webhook').item.json.body.Date;\nconst rawTime = $('Webhook').item.json.body.TIME;\nconst voteRaw = $json.VOTE;\n\n// 🚫 Skip if date/time missing\nif (!rawDate || !rawTime || rawDate.toString().trim() === \"\" || rawTime.toString().trim() === \"\") {\n  return []; // Stops if absolutely no date is provided\n}\n\n// 🧠 Normalize vote\nlet vote = voteRaw ? voteRaw.toString().toLowerCase().trim() : \"\";\n\n// ✅ Vote conditions (Includes \"highly recommended\"!)\nlet voteNumber = parseFloat(vote);\nlet isNumericQualified = !isNaN(voteNumber) && voteNumber >= 7 && voteNumber <= 10;\n\nlet isTextQualified =\n  vote === \"yes\" ||\n  vote === \"shortlisted\" ||\n  vote === \"shortlist\" ||\n  vote === \"highly recommended\"; \n\n// 🚫 Block if not qualified\nif (!(isNumericQualified || isTextQualified)) {\n  return [];\n}\n\nlet year, month, day;\n\n// 📅 DATE parsing\nlet dateStr = rawDate.toString().trim();\n\nif (typeof rawDate === \"number\") {\n  const d = new Date((rawDate - 25569) * 86400 * 1000);\n  year = d.getFullYear();\n  month = d.getMonth() + 1;\n  day = d.getDate();\n}\nelse if (dateStr.includes(\"T\")) {\n  const d = new Date(dateStr);\n  year = d.getFullYear();\n  month = d.getMonth() + 1;\n  day = d.getDate();\n}\nelse if (dateStr.includes(\"-\")) {\n  const parts = dateStr.split(\"-\").map(Number);\n  if (parts[0] > 31) {\n    [year, month, day] = parts;\n  } else {\n    [day, month, year] = parts;\n  }\n}\nelse if (dateStr.includes(\"/\")) {\n  const parts = dateStr.split(\"/\").map(Number);\n  if (parts[2] > 31) {\n    [day, month, year] = parts;\n  } else {\n    [month, day, year] = parts;\n  }\n}\nelse {\n  return [];\n}\n\n// ⏰ TIME parsing\nconst [hours, minutes] = rawTime.toString().split(\":\").map(Number);\n\n// 🚫 Validate all values\nif (\n  isNaN(year) || isNaN(month) || isNaN(day) ||\n  isNaN(hours) || isNaN(minutes)\n) {\n  return [];\n}\n\n// 📅 Create start time\nconst start = new Date(year, month - 1, day, hours, minutes);\n\n// 🇮🇳 IST adjustment\nstart.setMinutes(start.getMinutes() - 330);\n\n// ⏳ End time (1 hour later)\nconst end = new Date(start.getTime() + 60 * 60 * 1000);\n\n// ✅ FINAL OUTPUT \nlet outputJson = Object.assign({}, $json); // Safely copy all original candidate data\noutputJson.skip = false;\noutputJson.nextSlot = start.toISOString();\noutputJson.endSlot = end.toISOString();\noutputJson.readableTime = new Date(start.getTime() + 330 * 60 * 1000).toLocaleString(\"en-IN\");\n\nreturn {\n  json: outputJson\n};\n"
+      },
+      "id": "23c1df1d-a953-4f7b-9836-8a0b38eb61b0",
+      "name": "Code",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        -288,
+        144
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "model": "gemini-3-flash-preview",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmOllama",
+      "typeVersion": 1,
+      "position": [
+        480,
+        352
+      ],
+      "id": "819e46c5-9efa-4fcf-8daa-81376999808d",
+      "name": "Ollama Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "Wb6U8xzphkqm2Hyc",
+          "name": "Mondee HR automation"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1N1OKh98526_COyHx1nEkyCpclTBub9B78HXQNuY6yAs",
+          "mode": "list",
+          "cachedResultName": "CVs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1N1OKh98526_COyHx1nEkyCpclTBub9B78HXQNuY6yAs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1429086128,
+          "mode": "list",
+          "cachedResultName": "HR A",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1N1OKh98526_COyHx1nEkyCpclTBub9B78HXQNuY6yAs/edit#gid=1429086128"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_number": "={{ $json.row_number }}",
+            "STATUS": "Scheduled",
+            "Date": "={{ $node[\"Webhook\"].json.body.Date }}",
+            "TIME": "={{ $node[\"Webhook\"].json.body.TIME }}",
+            "MEETING LINK": "={{ $node[\"Google Calendar\"].json.hangoutLink }}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "DATA",
+              "displayName": "DATA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "NAME",
+              "displayName": "NAME",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "PHONE",
+              "displayName": "PHONE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "CITY",
+              "displayName": "CITY",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "EMAIL",
+              "displayName": "EMAIL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "DOB",
+              "displayName": "DOB",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "EDUCATIONAL",
+              "displayName": "EDUCATIONAL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "JOB HISTORY",
+              "displayName": "JOB HISTORY",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "SKILLS",
+              "displayName": "SKILLS",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "SUMMARIZE",
+              "displayName": "SUMMARIZE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "VOTE",
+              "displayName": "VOTE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "CONSIDERATION",
+              "displayName": "CONSIDERATION",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "TIME",
+              "displayName": "TIME",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "STATUS",
+              "displayName": "STATUS",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1680,
+        144
+      ],
+      "id": "d94298ce-a394-4a36-ac8f-307db8d5647b",
+      "name": "Update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "GeQ9p59WQErBu6TW",
+          "name": "Dmondee"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1N1OKh98526_COyHx1nEkyCpclTBub9B78HXQNuY6yAs",
+          "mode": "list",
+          "cachedResultName": "CVs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1N1OKh98526_COyHx1nEkyCpclTBub9B78HXQNuY6yAs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1429086128,
+          "mode": "list",
+          "cachedResultName": "HR A",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1N1OKh98526_COyHx1nEkyCpclTBub9B78HXQNuY6yAs/edit#gid=1429086128"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1456,
+        144
+      ],
+      "id": "13f4bc06-c704-44ca-a2dc-ef36fc66c09b",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "GeQ9p59WQErBu6TW",
+          "name": "Dmondee"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "33e972f1-b771-4096-a5cc-954d81a66db5",
+              "name": "Email",
+              "value": "=email: {{$json.EMAIL}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        16,
+        144
+      ],
+      "id": "e30095aa-5339-4ad4-a056-1ce91be01ba8",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1040,
+        144
+      ],
+      "id": "a484ceae-0939-43ae-9bc2-14d594b4e854",
+      "name": "Wait",
+      "webhookId": "00cb3bc8-a676-4049-b732-f1de085564d9"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "calendar": {
+          "__rl": true,
+          "value": "dmohanraj@mondee.com",
+          "mode": "list",
+          "cachedResultName": "dmohanraj@mondee.com"
+        },
+        "eventId": "={{ $('Google Calendar').item.json.id }}",
+        "updateFields": {
+          "attendeesUi": {
+            "values": {
+              "mode": "replace",
+              "attendees": [
+                "={{ $('Webhook').item.json.body.EMAIL }}"
+              ]
+            }
+          },
+          "description": "=Interview scheduled via automation for {{ $('Webhook').item.json.body.NAME }}",
+          "sendUpdates": "all",
+          "summary": "=Interview with {{ $('Webhook').item.json.body.NAME }} for {{ $('Webhook').item.json.body.ROLE }}",
+          "visibility": "public"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        1248,
+        144
+      ],
+      "id": "b1de761d-b196-4bf6-a17b-f44c3bdb261a",
+      "name": "Update an event",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "4lLJeEdbwhdi5otK",
+          "name": "DmondeeCldr"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Interview Event Google Calendar Creation\n\n\nThis Node will Create the Interview Event for Mentioned time in Sheet \n\nCreate the Personalized Mail for Attendee for Interview Invite",
+        "height": 720,
+        "width": 1168
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        208,
+        -80
+      ],
+      "typeVersion": 1,
+      "id": "5ece47da-c3f6-4b68-a502-2985403d4f26",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Update Status in Sheet",
+        "height": 384,
+        "width": 400,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1424,
+        16
+      ],
+      "typeVersion": 1,
+      "id": "939ea6f1-e357-46c4-ac81-bccb2fb6e83d",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1N1OKh98526_COyHx1nEkyCpclTBub9B78HXQNuY6yAs",
+          "mode": "list",
+          "cachedResultName": "CVs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1N1OKh98526_COyHx1nEkyCpclTBub9B78HXQNuY6yAs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1429086128,
+          "mode": "list",
+          "cachedResultName": "HR A",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1N1OKh98526_COyHx1nEkyCpclTBub9B78HXQNuY6yAs/edit#gid=1429086128"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -816,
+        144
+      ],
+      "id": "dc075a73-7a59-49bc-81e6-0a6544733642",
+      "name": "Get row(s) in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "GeQ9p59WQErBu6TW",
+          "name": "Dmondee"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d0f56ae1-67af-4d2e-b865-941fee696b28",
+              "leftValue": "={{ $('Webhook').item.json.body.VOTE }}",
+              "rightValue": "=shortlist",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "699db97d-100e-467e-b394-778740aa43ba",
+              "leftValue": "={{ $('Webhook').item.json.body.VOTE }}",
+              "rightValue": "Yes",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "83de6b4e-a81c-460d-b2a0-778d8a1c3088",
+              "leftValue": "={{ $('Webhook').item.json.body.VOTE }}",
+              "rightValue": "Highly Recommended",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "370bc388-99cc-498c-9fbf-d58f26f54e7b",
+              "leftValue": "={{ $('Webhook').item.json.body.VOTE }}",
+              "rightValue": "Strongly Recommended",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {
+          "ignoreCase": false
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -608,
+        144
+      ],
+      "id": "21179498-75cd-4a71-87ac-636819863bd9",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "interview-schedule",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1056,
+        144
+      ],
+      "id": "2c629112-0dfb-4e3f-a56e-b2271928697d",
+      "name": "Webhook",
+      "webhookId": "9d7f7e7a-a868-4be2-9171-833a69474bce"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1888,
+        144
+      ],
+      "id": "bba8cd46-c734-4b86-a5e7-3e742f1d4efd",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "update-time-date",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "579c1f2c-9ce0-432f-80fe-982ff60535a5",
+      "name": "Webhook: Update JD",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        224,
+        -400
+      ],
+      "webhookId": "999e4868-175a-46bc-bc34-4108089c34c4"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        640,
+        -400
+      ],
+      "id": "a9cf30e8-950b-43ea-a547-b7928d9d04f8",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1N1OKh98526_COyHx1nEkyCpclTBub9B78HXQNuY6yAs",
+          "mode": "list",
+          "cachedResultName": "CVs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1N1OKh98526_COyHx1nEkyCpclTBub9B78HXQNuY6yAs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1429086128,
+          "mode": "list",
+          "cachedResultName": "HR A",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1N1OKh98526_COyHx1nEkyCpclTBub9B78HXQNuY6yAs/edit#gid=1429086128"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_number": "={{ $json.body.row_number }}",
+            "Date": "={{ $json.body.Date }}",
+            "TIME": "={{ $json.body.TIME }}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "DATA",
+              "displayName": "DATA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "NAME",
+              "displayName": "NAME",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "PHONE",
+              "displayName": "PHONE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "CITY",
+              "displayName": "CITY",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "EMAIL",
+              "displayName": "EMAIL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "DOB",
+              "displayName": "DOB",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "EDUCATIONAL",
+              "displayName": "EDUCATIONAL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "JOB HISTORY",
+              "displayName": "JOB HISTORY",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "SKILLS",
+              "displayName": "SKILLS",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "SUMMARIZE",
+              "displayName": "SUMMARIZE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "VOTE",
+              "displayName": "VOTE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "CONSIDERATION",
+              "displayName": "CONSIDERATION",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "TIME",
+              "displayName": "TIME",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "MEETING LINK",
+              "displayName": "MEETING LINK",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "STATUS",
+              "displayName": "STATUS",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        432,
+        -400
+      ],
+      "id": "f7c8286b-1710-45ad-9103-0049a8e99068",
+      "name": "Update row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "GeQ9p59WQErBu6TW",
+          "name": "Dmondee"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Calendar": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Google Calendar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Update an event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update an event": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet1": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook: Update JD": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update row in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "265f2ec3-4ac0-4b6e-8642-f4138dc51003",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e05dc43e891d806397f541c3c769686a6e00bd2ec3091115347cabb3ededfc54"
+  },
+  "id": "0AlAuifmrqfgDtVl",
+  "tags": []
+}

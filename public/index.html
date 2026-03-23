@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apply - Mondee Careers</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .success-icon { width: 80px; height: 80px; color: var(--primary); margin: 0 auto 1.5rem; display: block; }
+    </style>
+</head>
+<body class="public-layout">
+    
+    <div class="public-card">
+        <header style="text-align: center; margin-bottom: 2rem;">
+            <div class="logo-box" style="justify-content: center; margin-bottom: 2rem;">
+                <img src="https://www.mondee.com/app/uploads/2026/03/Mondee_logo.svg" alt="Mondee Logo" style="height: 48px;">
+            </div>
+            <h1 style="font-size: 1.8rem; font-weight: 700;">Join the Team</h1>
+            <p style="color: var(--text-muted);">Securely submit your application profile.</p>
+        </header>
+
+        <main>
+            <form id="screeningForm">
+                <div class="form-group">
+                    <label for="candidateName">Full Name</label>
+                    <input type="text" id="candidateName" name="Name" placeholder="e.g. Jane Doe" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="candidateEmail">Email Address</label>
+                    <input type="email" id="candidateEmail" name="Email" placeholder="e.g. jane@example.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Resume / CV (PDF)</label>
+                    <div class="file-drop" id="fileDropArea">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                        <div class="file-message" id="fileMessage">Drag & drop your PDF here or click to browse</div>
+                        <input type="file" id="cvFile" name="CV" accept=".pdf" required>
+                    </div>
+                </div>
+
+                <button type="submit" id="submitBtn" class="primary-btn" style="width: 100%; margin-top: 1rem;">
+                    <span class="btn-text">Submit Application</span>
+                </button>
+            </form>
+
+            <div id="resultCard" class="hidden" style="text-align: center;">
+                <svg class="success-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+                <h2 style="margin-bottom: 0.5rem;">Application Received!</h2>
+                <p style="color: var(--text-muted); font-size: 1rem; margin-bottom: 2rem;">Thank you for applying. Our AI parsing logic is securely reviewing your profile.</p>
+                <button onclick="window.location.reload()" class="primary-btn" style="width: auto; margin: 0 auto;">Submit Another</button>
+            </div>
+        </main>
+    </div>
+
+    <!-- Minimal JS to handle submit state since app.js assumes specific elements -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('screeningForm');
+            const fileInput = document.getElementById('cvFile');
+            const fileMessage = document.getElementById('fileMessage');
+            const submitBtn = document.getElementById('submitBtn');
+            const btnText = submitBtn.querySelector('.btn-text');
+            const resultCard = document.getElementById('resultCard');
+
+            fileInput.addEventListener('change', () => {
+                if (fileInput.files.length > 0) {
+                    fileMessage.innerHTML = `<strong>Selected:</strong> ${fileInput.files[0].name}`;
+                    fileMessage.style.color = 'var(--text-main)';
+                }
+            });
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const formData = new FormData();
+                formData.append('Name', document.getElementById('candidateName').value);
+                formData.append('Email', document.getElementById('candidateEmail').value);
+                formData.append('CV', fileInput.files[0]);
+
+                submitBtn.disabled = true;
+                btnText.textContent = 'Submitting Application...';
+
+                try {
+                    const response = await fetch('https://dhanushmondee.app.n8n.cloud/webhook/profile-evoluation', { method: 'POST', body: formData });
+                    const data = await response.json();
+                    
+                    if (!response.ok) throw new Error(data.message || 'Server error occurred');
+
+                    form.classList.add('hidden');
+                    form.style.display = 'none';
+                    resultCard.classList.remove('hidden');
+
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Failed to submit application: ' + error.message);
+                } finally {
+                    submitBtn.disabled = false;
+                    btnText.textContent = 'Submit Application';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
