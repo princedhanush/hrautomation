@@ -112,6 +112,14 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                     Scheduled Interviews
                 </button>
+                <button class="nav-item" onclick="switchTab('lead-gen')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><polyline points="16 11 18 13 22 9"></polyline></svg>
+                    Lead Gen
+                </button>
+                <button class="nav-item" onclick="switchTab('stored-leads')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+                    Stored Leads
+                </button>
             </nav>
 
             <div class="sidebar-footer">
@@ -166,7 +174,7 @@
                                         <th>Candidate</th>
                                         <th>Targeted Role</th>
                                         <th>AI Consideration Summary</th>
-                                        <th>Vote</th>
+                                        <th>AI Score</th>
                                         <th>Status</th>
                                     </tr>
                                 </thead>
@@ -271,6 +279,101 @@
                     </div>
                 </section>
 
+                <!-- Lead Gen View -->
+                <section id="tab-lead-gen" class="tab-pane">
+                    <div class="section-card">
+                        <div class="section-header">
+                            <h3 class="section-title">LinkedIn Lead Generation</h3>
+                            <p class="section-desc">Find potential candidates on LinkedIn based on role, experience, location, and skills.</p>
+                        </div>
+                        <div class="insights-grid" style="grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 2rem;">
+                            <div class="form-group">
+                                <label style="display: flex; justify-content: space-between; align-items: center;">
+                                    Target Role
+                                    <button class="magic-fill-btn" id="magicFillBtn" title="Fill from current JD">
+                                        ✨ Magic Fill
+                                    </button>
+                                </label>
+                                <input type="text" id="leadRoleInput" placeholder="e.g. Senior React Developer" style="width: 100%;">
+                            </div>
+                            <div class="form-group">
+                                <label>Experience Required</label>
+                                <input type="text" id="leadExpInput" placeholder="e.g. 5+ years" style="width: 100%;">
+                            </div>
+                            <div class="form-group">
+                                <label>Location</label>
+                                <input type="text" id="leadLocInput" placeholder="e.g. Bangalore, India" style="width: 100%;">
+                            </div>
+                            <div class="form-group">
+                                <label>Key Skills/Keywords</label>
+                                <input type="text" id="leadSkillsInput" placeholder="e.g. Node.js, AWS, TypeScript" style="width: 100%;">
+                            </div>
+                            <div class="form-group">
+                                <label>Save to Folder (Project)</label>
+                                <input type="text" id="leadFolderName" placeholder="e.g. Frontend Hire Q1" style="width: 100%; border: 1px solid var(--accent-color);">
+                            </div>
+                        </div>
+                        <button id="findLeadsBtn" class="primary-btn" style="width: auto; margin-bottom: 2rem;">Find LinkedIn Leads</button>
+
+                        <div id="leadGenResults" style="display: none;">
+                            <div style="padding-top: 2rem; border-top: 1px solid var(--border-color);">
+                                <h4 class="section-title" style="font-size: 1.1rem;">Found Leads</h4>
+                                <p class="section-desc">The following profiles were discovered and added to the tracking sheet.</p>
+                                <div class="table-container" style="border: 1px solid #f1f5f9; border-radius: 8px; margin-top: 1rem;">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Profile Name</th>
+                                                <th>Reported Role</th>
+                                                <th>LinkedIn Link</th>
+                                                <th>Assign Tag</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="leadResultsBody">
+                                            <!-- Results populated by JS -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Stored Leads View -->
+                <section id="tab-stored-leads" class="tab-pane">
+                    <div class="section-card" style="padding: 0;">
+                        <div style="padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color);">
+                            <div>
+                                <h3 class="section-title">Categorized Leads</h3>
+                                <p class="section-desc">View and manage your saved LinkedIn profiles.</p>
+                            </div>
+                            <div style="display: flex; gap: 1rem; align-items: center;">
+                                <select id="folderFilter" class="schedule-input" style="width: 200px;" onchange="renderStoredLeads()">
+                                    <option value="all">📁 All Folders</option>
+                                </select>
+                                <button onclick="loadStoredLeads()" class="primary-btn" style="padding: 0.5rem 1rem;">Refresh</button>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Lead Name</th>
+                                        <th>Role / Summary</th>
+                                        <th>LinkedIn</th>
+                                        <th>Folder / Tag</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="storedLeadsBody">
+                                    <tr><td colspan="5" style="text-align: center; padding: 2rem; color: var(--text-muted);">Loading stored leads...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
             </div>
         </main>
     </div>
@@ -310,12 +413,17 @@
                 'results': 'Stored Candidate Results',
                 'settings': 'Platform Settings & Workflow Context',
                 'scheduler': 'Interview Scheduler',
-                'scheduled': 'Scheduled Interviews'
+                'scheduled': 'Scheduled Interviews',
+                'lead-gen': 'LinkedIn Lead Generation',
+                'stored-leads': 'Categorized LinkedIn Leads'
             };
             document.getElementById('topbarTitle').innerText = titles[tabId];
             
             if(tabId === 'insights' || tabId === 'results' || tabId === 'scheduler' || tabId === 'scheduled') {
                 loadCandidates();
+            }
+            if(tabId === 'stored-leads') {
+                loadStoredLeads();
             }
         }
 
@@ -358,7 +466,7 @@
                     
                     // The Google Sheet has headers: 'JD_Text' and 'Role'
                     // We send both at the root and inside a 'body' object for n8n compatibility
-                    await fetch('https://dhanushmondee.app.n8n.cloud/webhook/update-jd', {
+                    await fetch('http://localhost:5678/webhook/update-jd', {
                         method: 'POST', 
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ 
@@ -392,7 +500,7 @@
             try {
                 // Loading state
                 btn.innerText = 'Syncing...';
-                const n8nRes = await fetch('https://dhanushmondee.app.n8n.cloud/webhook/get-jd');
+                const n8nRes = await fetch('http://localhost:5678/webhook/get-jd');
                 const n8nData = await n8nRes.json();
                 const result = Array.isArray(n8nData) ? n8nData[0] : n8nData;
 
@@ -429,12 +537,13 @@
                 if(data.jd) document.getElementById('jdInput').value = data.jd;
                 if(data.role) {
                     document.getElementById('roleInput').value = data.role;
+                    document.getElementById('leadRoleInput').value = data.role;
                     currentTargetRole = data.role;
                 }
                 
                 // Backup sync from n8n if local is empty/fail (optional, but good for migration)
                 if(!data.jd) {
-                    const n8nRes = await fetch('https://dhanushmondee.app.n8n.cloud/webhook/get-jd');
+                    const n8nRes = await fetch('http://localhost:5678/webhook/get-jd');
                     const n8nData = await n8nRes.json();
                     const result = Array.isArray(n8nData) ? n8nData[0] : n8nData;
                     const jdText = result.JD_Text || result.jd || result.text;
@@ -452,12 +561,38 @@
 
             // Load Initial Data
             loadCandidates();
+
+            // Magic Fill Listener
+            document.getElementById('magicFillBtn')?.addEventListener('click', () => {
+                const currentRole = document.getElementById('roleInput').value;
+                const currentJD = document.getElementById('jdInput').value;
+                
+                if (!currentRole) {
+                    showToast('No active role found in Settings.');
+                    return;
+                }
+
+                document.getElementById('leadRoleInput').value = currentRole;
+                
+                // Extract skills if possible (simple regex or comma split)
+                if (currentJD) {
+                    const skillsMatch = currentJD.match(/Skills:?\s*([^.\n]+)/i);
+                    if (skillsMatch) document.getElementById('leadSkillsInput').value = skillsMatch[1].trim();
+                }
+
+                showToast('✨ Criteria filled from active Job Description!');
+                
+                // Animation effect
+                const btn = document.getElementById('magicFillBtn');
+                btn.style.transform = 'rotate(360deg) scale(1.2)';
+                setTimeout(() => btn.style.transform = '', 500);
+            });
         }
 
         // Load Candidates & Insights
         async function loadCandidates() {
             try {
-                const res = await fetch('https://dhanushmondee.app.n8n.cloud/webhook/get-results');
+                const res = await fetch('http://localhost:5678/webhook/get-results');
                 if (!res.ok) throw new Error('Live Dashboard Connection Pending...');
                 const data = await res.json();
                 
@@ -472,49 +607,110 @@
         }
 
         function renderDashboard() {
+            // Update KPIs
+            const totalApps = candidatesCache.length;
+            const approved = candidatesCache.filter(r => {
+                const v = (r.VOTE || r.vote || '').toString().toLowerCase();
+                return v.includes('yes') || v.includes('shortlist') || v.includes('recommend');
+            }).length;
+
+            const scores = candidatesCache.map(r => {
+                const v = (r.VOTE || r.vote || '').toString().toLowerCase();
+                if (v.includes('yes')) return 9;
+                if (v.includes('recommend')) return 8;
+                if (v.includes('shortlist')) return 7;
+                return parseInt(v) || 0;
+            }).filter(s => s > 0);
+
+            const avgScore = scores.length > 0 ? (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1) : '0';
+
+            document.getElementById('kpiTotal').innerText = totalApps || '0';
+            document.getElementById('kpiApproved').innerText = approved || '0';
+            document.getElementById('kpiAvg').innerText = avgScore || '0';
+
             // Update Table
             const tbody = document.getElementById('candidatesBody');
             if (!candidatesCache || candidatesCache.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 2rem; color: var(--text-muted);">No stored results yet.</td></tr>';
             } else {
                 tbody.innerHTML = candidatesCache.map(r => {
-                    const name = r.NAME || r.name || 'Unknown';
-                    const email = r.EMAIL || r.email || '';
-                    const role = r.Role || r.ROLE || r.role || currentTargetRole;
-                    const status = r.STATUS || r.status || 'Pending';
-                    const vote = r.VOTE || r.vote || '-';
-                    const rawSummary = r.CONSIDERATION || r.consideration || '<em>Awaiting AI evaluation...</em>';
-                    const date = r.DATA || r.DATE || r.created_at || 'N/A';
+                    // Strict Data Mapping for Grid and Tables
+                    function getField(obj, ...keys) {
+                        for (const k of keys) {
+                            if (obj[k] !== undefined && obj[k] !== null) return obj[k];
+                        }
+                        return '';
+                    }
+
+                    const name = getField(r, 'NAME', 'name', 'candidate_name', 'Name');
+                    const email = getField(r, 'EMAIL', 'email', 'Email');
+                    const role = getField(r, 'Role', 'ROLE', 'role', 'targeted_role') || currentTargetRole;
+                    const status = getField(r, 'STATUS', 'status', 'Status') || 'Pending';
+                    const vote = getField(r, 'VOTE', 'vote', 'Vote') || '-';
+                    const rawSummary = getField(r, 'CONSIDERATION', 'consideration', 'SUMMARIZE', 'summary') || '<em>Awaiting evaluation...</em>';
+                    const dateRaw = getField(r, 'DATA', 'DATE', 'date_applied', 'created_at', 'Date');
+                    
+                    // Score Bar Logic
+                    let score = parseInt(vote) || 0;
+                    if (vote.toString().toLowerCase().includes('yes')) score = 9;
+                    if (vote.toString().toLowerCase().includes('recommend')) score = 8;
+                    if (vote.toString().toLowerCase().includes('shortlist')) score = 7;
+                    
+                    const barColor = score >= 8 ? 'var(--success)' : (score >= 5 ? 'var(--warning)' : 'var(--danger)');
+                    const scoreBar = `
+                        <div class="score-container">
+                            <div class="score-bar-bg">
+                                <div class="score-bar-fill" style="width: ${score * 10}%; background: ${barColor};"></div>
+                            </div>
+                            <span class="score-text">${score > 0 ? score : '-'}</span>
+                        </div>
+                    `;
+
                     const rowNum = r.row_number || '';
-                    const skills = r.SKILLS || r.Skills || '';
+                    const skills = getField(r, 'SKILLS', 'Skills', 'skills');
+
+                    // Interview Specific Normalization
+                    let interviewDate = getField(r, 'Date', 'interview_date', 'date');
+                    let interviewTime = getField(r, 'TIME', 'time', 'interview_time');
+
+                    // Normalize Interview Date for <input type="date"> (YYYY-MM-DD)
+                    let normalizedDate = '';
+                    if (interviewDate && typeof interviewDate === 'string') {
+                        if (interviewDate.includes('/')) {
+                            const parts = interviewDate.split('/');
+                            if (parts[2]?.length === 4) normalizedDate = `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
+                        } else if (interviewDate.includes('-') && interviewDate.split('-')[0].length !== 4) {
+                             const parts = interviewDate.split('-');
+                             normalizedDate = `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
+                        } else if (interviewDate.length === 10) {
+                             normalizedDate = interviewDate; // Already YYYY-MM-DD
+                        }
+                    }
+                    
+                    // Normalize Interview Time for <input type="time"> (HH:MM)
+                    let normalizedTime = '';
+                    if (interviewTime && typeof interviewTime === 'string') {
+                        if (interviewTime.includes(':')) {
+                            const [h, m] = interviewTime.split(':');
+                            normalizedTime = `${h.padStart(2,'0')}:${m.substring(0,2).padStart(2,'0')}`;
+                        }
+                    }
+
 
                     // Truncate summary for table
                     const summaryLimit = 120;
                     let displaySummary = rawSummary;
                     let showReadMore = false;
-                    
-                    if (rawSummary.length > summaryLimit) {
+                    if (rawSummary && rawSummary.length > summaryLimit) {
                         displaySummary = rawSummary.substring(0, summaryLimit) + '...';
                         showReadMore = true;
                     }
 
                     const isScheduled = status.toLowerCase() === 'scheduled';
-                    
-                    // Normalize Date for <input type="date"> (YYYY-MM-DD)
-                    let displayDate = r.Date || r.date || '';
-                    if (displayDate && displayDate.includes('/')) {
-                        const parts = displayDate.split('/');
-                        if (parts[2].length === 4) displayDate = `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
-                    } else if (displayDate && displayDate.includes('-') && displayDate.split('-')[0].length !== 4) {
-                         const parts = displayDate.split('-');
-                         displayDate = `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
-                    }
-
-                    const displayTime = r.TIME || r.time || '';
 
                     return `
                         <tr>
-                            <td style="font-size: 0.8rem; color: var(--text-muted);">${date}</td>
+                            <td style="font-size: 0.8rem; color: var(--text-muted);">${dateRaw}</td>
                             <td>
                                 <strong>${name}</strong><br>
                                 <span style="font-size: 0.8rem; color: var(--text-muted);">${email}</span>
@@ -522,12 +718,12 @@
                             <td><span style="font-size: 0.9rem; font-weight: 500; color: var(--text-main);">${role}</span></td>
                             <td class="summary-cell">
                                 <div class="summary-text">${displaySummary}</div>
-                                ${showReadMore ? `<button class="read-more-btn" onclick="openModal('${name.replace(/'/g, "\\'")}', '${rawSummary.replace(/'/g, "\\'").replace(/\n/g, "\\n")}')">Read more</button>` : ''}
+                                ${showReadMore ? `<button class="read-more-btn" onclick="openModal('${name.replace(/'/g, "\\'")}', '${rawSummary.replace(/'/g, "\\'").replace(/\n/g, "\\'").replace(/\r/g, "")}')">Read more</button>` : ''}
                             </td>
-                            <td style="font-weight: 700; color: ${vote.toString().toLowerCase().includes('yes') ? 'var(--success)' : '#0F172A'}">${vote}</td>
+                            <td>${scoreBar}</td>
                             <td>
                                 <span class="status-badge status-${status.replace(/\s+/g, '')}">${status}</span>
-                                ${isScheduled ? `<br><span style="font-size: 0.75rem; color: var(--text-muted);">${displayDate} ${displayTime}</span>` : ''}
+                                ${isScheduled ? `<br><span style="font-size: 0.75rem; color: var(--text-muted);">${normalizedDate} ${normalizedTime}</span>` : ''}
                             </td>
                         </tr>
                     `;
@@ -560,7 +756,7 @@
                 if (pendingCandidates.length === 0) {
                     pendingTbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 2rem; color: var(--text-muted);">No qualified candidates pending schedule.</td></tr>';
                 } else {
-                    pendingTbody.innerHTML = pendingCandidates.map(r => {
+                    pendingTbody.innerHTML = pendingCandidates.map((r, idx) => {
                         const name = r.NAME || r.name || 'Unknown';
                         const email = r.EMAIL || r.email || '';
                         const role = r.Role || r.ROLE || r.role || currentTargetRole;
@@ -588,10 +784,10 @@
                                 <td>
                                     <div style="display: flex; flex-direction: column; gap: 0.75rem;">
                                         <div style="display: flex; gap: 0.5rem;">
-                                            <input type="date" class="schedule-input" id="sched-date-${rowNum}" value="${displayDate}" style="flex: 1;">
-                                            <input type="time" class="schedule-input" id="sched-time-${rowNum}" value="${displayTime}" style="flex: 1;">
+                                            <input type="date" class="schedule-input" id="sched-date-${rowNum || idx}" value="${displayDate}" style="flex: 1;">
+                                            <input type="time" class="schedule-input" id="sched-time-${rowNum || idx}" value="${displayTime}" style="flex: 1;">
                                         </div>
-                                        <button class="primary-btn" style="width: 100%; justify-content: center; padding: 0.6rem;" onclick="scheduleInterviewFromScheduler(this, '${rowNum}', '${sName}', '${sEmail}', '${sRole}', '${sSkills}', '${sVote}')">
+                                        <button class="primary-btn" style="width: 100%; justify-content: center; padding: 0.6rem;" onclick="scheduleInterviewFromScheduler(this, '${rowNum}', '${sName}', '${sEmail}', '${sRole}', '${sSkills}', '${sVote}', ${idx})">
                                             Send Interview Invite
                                         </button>
                                     </div>
@@ -612,11 +808,14 @@
                         const date = r.Date || r.date || 'N/A';
                         const time = r.TIME || r.time || '';
                         const link = r.Link || r.LINK || r['MEETING LINK'] || r['Meeting Link'] || '#';
-                        const rowNum = r.row_number || '';
+                        
+                        // Prevent showing date in time col if they match
+                        const displayTime = (time === date) ? 'Checked' : time;
+
                         return `
                             <tr>
                                 <td><strong>${name}</strong><br><span style="font-size: 0.8rem; color: var(--text-muted);">${email}</span></td>
-                                <td><span style="font-weight: 500;">${date} at ${time}</span></td>
+                                <td><span style="font-weight: 500;">${date} ${displayTime !== 'Checked' ? 'at ' + displayTime : ''}</span></td>
                                 <td>${link !== '#' ? `<a href="${link}" target="_blank" class="link-btn">Join Interview 🔗</a>` : '<span style="color:#999; font-style:italic">Link Pending...</span>'}</td>
                             </tr>
                         `;
@@ -647,9 +846,9 @@
             await performScheduling(rowNum, name, email, role, skills, vote, dateInput, timeInput, btn);
         }
 
-        async function scheduleInterviewFromScheduler(btn, rowNum, name, email, role, skills, vote) {
-            const dateInput = document.getElementById(`sched-date-${rowNum}`);
-            const timeInput = document.getElementById(`sched-time-${rowNum}`);
+        async function scheduleInterviewFromScheduler(btn, rowNum, name, email, role, skills, vote, idx) {
+            const dateInput = document.getElementById(`sched-date-${rowNum || idx}`);
+            const timeInput = document.getElementById(`sched-time-${rowNum || idx}`);
             await performScheduling(rowNum, name, email, role, skills, vote, dateInput, timeInput, btn);
         }
 
@@ -677,11 +876,9 @@
             const originalHTML = btn.innerHTML;
             btn.innerHTML = '<span class="spinner"></span>Scheduling...';
             console.log("Scheduling candidate:", { name, email, rowNum });
-            btn.disabled = true;
-
             try {
-                // Webhook 1: The Calendar Scheduler & Automation Logic
-                const schedPromise = fetch('https://dhanushmondee.app.n8n.cloud/webhook/interview-schedule', {
+                // Consolidated Webhook: Unified scheduling & sheet update
+                const schedPromise = fetch('http://localhost:5678/webhook/interview-schedule', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -697,41 +894,24 @@
                     })
                 });
 
-                // Webhook 2: Dedicated Sheet Update for Tracking (as requested)
-                const updatePromise = fetch('https://dhanushmondee.app.n8n.cloud/webhook/update-time-date', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        row_number: rowNum,
-                        Date: dateInput.value,
-                        TIME: timeInput.value,
-                        STATUS: 'Scheduled'
-                    })
-                });
-
-                const [resSched, resUpdate] = await Promise.all([schedPromise, updatePromise]);
-
-                let errorMsg = '';
-                if (!resSched.ok) errorMsg += 'Calendar Invite API Error. ';
-                if (!resUpdate.ok) errorMsg += 'Google Sheet Sync Error.';
-
-                if (errorMsg) {
-                    showToast('⚠️ ' + errorMsg + ' Check Console.');
-                    console.error("n8n Details:", {
-                        scheduler: !resSched.ok ? await resSched.text() : 'ok',
-                        sync: !resUpdate.ok ? await resUpdate.text() : 'ok'
-                    });
+                const resSched = await schedPromise;
+                
+                if (!resSched.ok) {
+                    showToast('⚠️ Scheduler API Error. Check Console.');
+                    console.error("n8n Error:", await resSched.text());
                 } else {
-                    showToast('Scheduled Successfully! Refreshing...');
+                    showToast('Scheduled Successfully! Syncing status...');
                 }
 
-                btn.innerText = 'Invite Sent ✓';
-                btn.style.background = '#ccc';
+                btn.innerText = 'Syncing...';
                 
-                // Refresh data to show new status from server (longer delay for n8n)
+                // Refresh data to show new status from server (longer delay for n8n Wait node)
                 setTimeout(() => {
                     loadCandidates();
-                }, 3000);
+                    btn.innerText = 'Invite Sent ✓';
+                    btn.style.background = '#ccc';
+                    btn.disabled = true;
+                }, 6000);
 
             } catch (error) {
                 console.error("Scheduling UI Error:", error);
@@ -766,6 +946,178 @@
         document.getElementById('summaryModal').addEventListener('click', (e) => {
             if (e.target === document.getElementById('summaryModal')) closeModal();
         });
+
+        // Lead Gen Logic
+        document.getElementById('findLeadsBtn')?.addEventListener('click', async (e) => {
+            const btn = e.target;
+            const originalText = btn.innerText;
+            
+            const role = document.getElementById('leadRoleInput').value;
+            const exp = document.getElementById('leadExpInput').value;
+            const loc = document.getElementById('leadLocInput').value;
+            const skills = document.getElementById('leadSkillsInput').value;
+
+            if (!role) {
+                showToast('Please enter at least a Target Role.');
+                return;
+            }
+
+            btn.innerHTML = '<span class="spinner"></span> Finding Leads...';
+            btn.disabled = true;
+            document.getElementById('leadGenResults').style.display = 'none';
+
+            try {
+                const res = await fetch('http://localhost:5678/webhook/linkedinfind', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        Role: role,
+                        Experience: exp,
+                        Location: loc,
+                        Skills: skills
+                    })
+                });
+
+                if (!res.ok) throw new Error('Lead Generation API Error.');
+
+                const data = await res.json();
+                const results = Array.isArray(data) ? data : (data.results || []);
+
+                const tbody = document.getElementById('leadResultsBody');
+                if (results.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 2rem;">No leads found for these criteria. Try broadening your keywords.</td></tr>';
+                } else {
+                    tbody.innerHTML = results.map((r, idx) => {
+                        const name = r.json?.name || r.name || 'N/A';
+                        const pRole = r.json?.role || r.role || 'N/A';
+                        const url = r.json?.linkedin_url || r.linkedin_url || '#';
+                        const sum = r.json?.summary || r.summary || '';
+                        
+                        return `
+                            <tr>
+                                <td><strong>${name}</strong></td>
+                                <td>${pRole}</td>
+                                <td><a href="${url}" target="_blank" class="link-btn">View Profile 🔗</a></td>
+                                <td>
+                                    <select class="schedule-input" id="tag-${idx}" style="padding: 0.3rem;">
+                                        <option value="High Priority">🔥 High Priority</option>
+                                        <option value="Interested">✅ Interested</option>
+                                        <option value="Waitlist">⏳ Waitlist</option>
+                                        <option value="Do Not Contact">❌ No Contact</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <button class="primary-btn" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="saveLead(this, '${name.replace(/'/g, "\\'")}', '${pRole.replace(/'/g, "\\'")}', '${url}', '${sum.replace(/'/g, "\\'")}', 'tag-${idx}')">Save</button>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+
+                document.getElementById('leadGenResults').style.display = 'block';
+                showToast(`Found ${results.length} LinkedIn leads!`);
+            } catch (err) {
+                showToast('Error: ' + err.message);
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        });
+
+        // Save Lead to local DB
+        async function saveLead(btn, name, role, url, summary, selectId) {
+            const tag = document.getElementById(selectId).value;
+            const folder = document.getElementById('leadFolderName').value.trim() || 'Uncategorized';
+            const originalHTML = btn.innerHTML;
+            btn.innerText = 'Saving...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/api/leads', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, role, linkedin_url: url, summary, tag, folder })
+                });
+                if (!res.ok) throw new Error('Save Failed');
+                
+                showToast(`Lead "${name}" saved to ${folder}`);
+                btn.innerText = 'Saved ✓';
+                btn.style.background = '#ccc';
+            } catch (err) {
+                showToast('Error: ' + err.message);
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+            }
+        }
+
+        let storedLeadsCache = [];
+
+        async function loadStoredLeads() {
+            try {
+                const res = await fetch('/api/leads');
+                storedLeadsCache = await res.json();
+                
+                // Populate folder filter
+                const filter = document.getElementById('folderFilter');
+                const folders = [...new Set(storedLeadsCache.map(l => l.folder).filter(Boolean))];
+                const currentVal = filter.value;
+                
+                filter.innerHTML = '<option value="all">📁 All Folders</option>' + 
+                    folders.map(f => `<option value="${f}">📁 ${f}</option>`).join('');
+                
+                // Restore selection if exists
+                if (folders.includes(currentVal)) filter.value = currentVal;
+
+                renderStoredLeads();
+            } catch (err) {
+                console.error(err);
+                showToast('Error loading leads.');
+            }
+        }
+
+        function renderStoredLeads() {
+            const tbody = document.getElementById('storedLeadsBody');
+            const filterVal = document.getElementById('folderFilter').value;
+            
+            const filteredLeads = filterVal === 'all' 
+                ? storedLeadsCache 
+                : storedLeadsCache.filter(l => l.folder === filterVal);
+
+            if (filteredLeads.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 2rem; color: var(--text-muted);">No leads found in this folder.</td></tr>';
+            } else {
+                tbody.innerHTML = filteredLeads.map(l => `
+                    <tr>
+                        <td><strong>${l.name}</strong><br><span style="font-size: 0.75rem; color: var(--text-muted);">${new Date(l.created_at).toLocaleDateString()}</span></td>
+                        <td style="font-size: 0.85rem;">
+                            <strong>${l.role}</strong><br>
+                            <span style="color: var(--text-muted);">${l.summary || ''}</span>
+                        </td>
+                        <td><a href="${l.linkedin_url}" target="_blank" class="link-btn">Profile 🔗</a></td>
+                        <td>
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <span style="font-size: 0.7rem; color: var(--accent-color); font-weight: 600;">📁 ${l.folder || 'Uncategorized'}</span>
+                                <span class="status-badge" style="background: #f1f5f9; color: var(--primary-color); border: 1px solid #e2e8f0; font-size: 0.7rem;">${l.tag}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <button class="read-more-btn" style="color: #ef4444;" onclick="deleteLead(${l.id})">Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        async function deleteLead(id) {
+            if (!confirm('Are you sure you want to remove this lead?')) return;
+            try {
+                await fetch(`/api/leads/${id}`, { method: 'DELETE' });
+                showToast('Lead removed.');
+                loadStoredLeads();
+            } catch (err) {
+                showToast('Error deleting lead.');
+            }
+        }
 
         // Run On Boot
         init();

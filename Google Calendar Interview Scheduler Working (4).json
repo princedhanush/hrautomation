@@ -18,9 +18,9 @@
               "conferenceSolution": "hangoutsMeet"
             }
           },
-          "description": "=Interview scheduled via automation for {{ $('Webhook').item.json.body.NAME }}",
+          "description": "=Interview scheduled via automation for {{ $node[\"Webhook\"].json.body.NAME }}",
           "location": "Google Meet / Online",
-          "summary": "=Interview with {{ $('Webhook').item.json.body.NAME }} for {{ $('Webhook').item.json.body.ROLE }}",
+          "summary": "=Interview with {{ $node[\"Webhook\"].json.body.NAME }} for {{ $node[\"Webhook\"].json.body.ROLE }}",
           "visibility": "public"
         }
       },
@@ -41,7 +41,7 @@
     },
     {
       "parameters": {
-        "sendTo": "={{ $('Webhook').item.json.body.EMAIL }}",
+        "sendTo": "={{ $node[\"Webhook\"].json.body.EMAIL }}",
         "subject": "Interview Details",
         "emailType": "text",
         "message": "={{ $json.output.body }}",
@@ -68,7 +68,7 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "=Write a clean and professional interview invitation email.\n\nDetails:\nName: {{ $('Webhook').item.json.body.NAME }}\nSkills: {{ $('Webhook').item.json.body.SKILLS }}\nDate & Time: {{$('Code').item.json.readableTime}}\nCalendar Link:\nMeeting Link: {{$json.hangoutLink}}\n\n📌 A calendar invitation has been sent to your email.\nIf you don’t see it in your calendar, please click “Add to calendar” in the invite.\n\nInstructions:\n- Keep it short and professional\n- Use simple sentences\n- Do not repeat information\n- Do not add extra explanation\n- Output only the email body\n\nFormat:\n\nHello {{ $('Webhook').item.json.body.NAME }},\n\nWe are Mondee, a global travel technology company.\n\nCongratulations! Your profile has been shortlisted.\n\nYour interview details:\nDate & Time: {{ $('Code').item.json.readableTime }}\n\nJoin Meeting:\n{{$json.hangoutLink}}\n\n📌 A calendar invitation has been sent to your email.\nIf you don’t see it in your calendar, please click “Add to calendar” in the invite.\n\n\nPlease join on time.\n\nBest regards,  \nDhanush  \nMondee",
+        "text": "=Write a clean and professional interview invitation email.\n\nDetails:\nName: {{ $node[\"Webhook\"].json.body.NAME }}\nSkills: {{ $node[\"Webhook\"].json.body.SKILLS }}\nDate & Time: {{$('Code').item.json.readableTime}}\nCalendar Link:\nMeeting Link: {{$json.hangoutLink}}\n\n📌 A calendar invitation has been sent to your email.\nIf you don’t see it in your calendar, please click “Add to calendar” in the invite.\n\nInstructions:\n- Keep it short and professional\n- Use simple sentences\n- Do not repeat information\n- Do not add extra explanation\n- Output only the email body\n\nFormat:\n\nHello {{ $node[\"Webhook\"].json.body.NAME }},\n\nWe are Mondee, a global travel technology company.\n\nCongratulations! Your profile has been shortlisted.\n\nYour interview details:\nDate & Time: {{ $('Code').item.json.readableTime }}\n\nJoin Meeting:\n{{$json.hangoutLink}}\n\n📌 A calendar invitation has been sent to your email.\nIf you don’t see it in your calendar, please click “Add to calendar” in the invite.\n\n\nPlease join on time.\n\nBest regards,  \nDhanush  \nMondee",
         "hasOutputParser": true,
         "messages": {
           "messageValues": [
@@ -103,7 +103,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Grab fresh Date/Time DIRECTLY from the Webhook payload, not the sheet!\nconst rawDate = $('Webhook').item.json.body.Date;\nconst rawTime = $('Webhook').item.json.body.TIME;\nconst voteRaw = $json.VOTE;\n\n// 🚫 Skip if date/time missing\nif (!rawDate || !rawTime || rawDate.toString().trim() === \"\" || rawTime.toString().trim() === \"\") {\n  return []; // Stops if absolutely no date is provided\n}\n\n// 🧠 Normalize vote\nlet vote = voteRaw ? voteRaw.toString().toLowerCase().trim() : \"\";\n\n// ✅ Vote conditions (Includes \"highly recommended\"!)\nlet voteNumber = parseFloat(vote);\nlet isNumericQualified = !isNaN(voteNumber) && voteNumber >= 7 && voteNumber <= 10;\n\nlet isTextQualified =\n  vote === \"yes\" ||\n  vote === \"shortlisted\" ||\n  vote === \"shortlist\" ||\n  vote === \"highly recommended\"; \n\n// 🚫 Block if not qualified\nif (!(isNumericQualified || isTextQualified)) {\n  return [];\n}\n\nlet year, month, day;\n\n// 📅 DATE parsing\nlet dateStr = rawDate.toString().trim();\n\nif (typeof rawDate === \"number\") {\n  const d = new Date((rawDate - 25569) * 86400 * 1000);\n  year = d.getFullYear();\n  month = d.getMonth() + 1;\n  day = d.getDate();\n}\nelse if (dateStr.includes(\"T\")) {\n  const d = new Date(dateStr);\n  year = d.getFullYear();\n  month = d.getMonth() + 1;\n  day = d.getDate();\n}\nelse if (dateStr.includes(\"-\")) {\n  const parts = dateStr.split(\"-\").map(Number);\n  if (parts[0] > 31) {\n    [year, month, day] = parts;\n  } else {\n    [day, month, year] = parts;\n  }\n}\nelse if (dateStr.includes(\"/\")) {\n  const parts = dateStr.split(\"/\").map(Number);\n  if (parts[2] > 31) {\n    [day, month, year] = parts;\n  } else {\n    [month, day, year] = parts;\n  }\n}\nelse {\n  return [];\n}\n\n// ⏰ TIME parsing\nconst [hours, minutes] = rawTime.toString().split(\":\").map(Number);\n\n// 🚫 Validate all values\nif (\n  isNaN(year) || isNaN(month) || isNaN(day) ||\n  isNaN(hours) || isNaN(minutes)\n) {\n  return [];\n}\n\n// 📅 Create start time\nconst start = new Date(year, month - 1, day, hours, minutes);\n\n// 🇮🇳 IST adjustment\nstart.setMinutes(start.getMinutes() - 330);\n\n// ⏳ End time (1 hour later)\nconst end = new Date(start.getTime() + 60 * 60 * 1000);\n\n// ✅ FINAL OUTPUT \nlet outputJson = Object.assign({}, $json); // Safely copy all original candidate data\noutputJson.skip = false;\noutputJson.nextSlot = start.toISOString();\noutputJson.endSlot = end.toISOString();\noutputJson.readableTime = new Date(start.getTime() + 330 * 60 * 1000).toLocaleString(\"en-IN\");\n\nreturn {\n  json: outputJson\n};\n"
+        "jsCode": "const webhookItems = $items(\"Webhook\");\nif (!webhookItems || webhookItems.length === 0) {\n  return { json: { error: \"CRITICAL: Could not find the Webhook memory!\" } };\n}\n\nconst webhookData = webhookItems[0].json.body;\nconst rawDate = webhookData.Date;\nconst rawTime = webhookData.TIME;\nconst voteRaw = $json.VOTE;\n\nif (!rawDate || !rawTime || rawDate.toString().trim() === \"\" || rawTime.toString().trim() === \"\") {\n  return { json: { error: \"FAILED DATE CHECK\", rawDate: rawDate, rawTime: rawTime } };\n}\n\nlet vote = voteRaw ? voteRaw.toString().toLowerCase().trim() : \"\";\nlet voteNumber = parseFloat(vote);\nlet isNumericQualified = !isNaN(voteNumber) && voteNumber >= 7 && voteNumber <= 10;\nlet isTextQualified = vote === \"yes\" || vote === \"shortlisted\" || vote === \"shortlist\" || vote === \"highly recommended\"; \n\nif (!(isNumericQualified || isTextQualified)) {\n  return { json: { error: \"FAILED VOTE CHECK\", originalVote: voteRaw, normalizedVote: vote } };\n}\n\nlet year, month, day;\nlet dateStr = rawDate.toString().trim();\n\nif (typeof rawDate === \"number\") {\n  const d = new Date((rawDate - 25569) * 86400 * 1000);\n  year = d.getFullYear(); month = d.getMonth() + 1; day = d.getDate();\n} else if (dateStr.includes(\"T\")) {\n  const d = new Date(dateStr);\n  year = d.getFullYear(); month = d.getMonth() + 1; day = d.getDate();\n} else if (dateStr.includes(\"-\")) {\n  const parts = dateStr.split(\"-\").map(Number);\n  if (parts[0] > 31) { [year, month, day] = parts; } else { [day, month, year] = parts; }\n} else if (dateStr.includes(\"/\")) {\n  const parts = dateStr.split(\"/\").map(Number);\n  if (parts[2] > 31) { [day, month, year] = parts; } else { [month, day, year] = parts; }\n} else { \n  return { json: { error: \"FAILED PARSING FORMAT\", dateStr: dateStr } };\n}\n\nconst [hours, minutes] = rawTime.toString().split(\":\").map(Number);\n\nif (isNaN(year) || isNaN(month) || isNaN(day) || isNaN(hours) || isNaN(minutes)) { \n  return { json: { error: \"FAILED PARSING (NaN)\", year, month, day, hours, minutes } };\n}\n\nconst start = new Date(year, month - 1, day, hours, minutes);\nstart.setMinutes(start.getMinutes() - 330);\nconst end = new Date(start.getTime() + 60 * 60 * 1000);\n\nlet outputJson = Object.assign({}, $json);\noutputJson.skip = false;\noutputJson.nextSlot = start.toISOString();\noutputJson.endSlot = end.toISOString();\noutputJson.readableTime = new Date(start.getTime() + 330 * 60 * 1000).toLocaleString(\"en-IN\");\n\nreturn { json: outputJson };\n"
       },
       "id": "23c1df1d-a953-4f7b-9836-8a0b38eb61b0",
       "name": "Code",
@@ -154,11 +154,11 @@
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "row_number": "={{ $json.row_number }}",
+            "row_number": "={{ $item(0).$node[\"Webhook\"].json.body.row_number }}",
             "STATUS": "Scheduled",
-            "Date": "={{ $node[\"Webhook\"].json.body.Date }}",
-            "TIME": "={{ $node[\"Webhook\"].json.body.TIME }}",
-            "MEETING LINK": "={{ $node[\"Google Calendar\"].json.hangoutLink }}"
+            "Date": "={{ $item(0).$node[\"Webhook\"].json.body.Date }}",
+            "TIME": "={{ $item(0).$node[\"Webhook\"].json.body.TIME }}",
+            "MEETING LINK": "={{ $item(0).$node[\"Google Calendar\"].json.hangoutLink }}"
           },
           "matchingColumns": [
             "row_number"
@@ -305,6 +305,16 @@
               "removed": false
             },
             {
+              "id": "MEETING LINK",
+              "displayName": "MEETING LINK",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
               "id": "STATUS",
               "displayName": "STATUS",
               "required": false,
@@ -422,19 +432,19 @@
           "mode": "list",
           "cachedResultName": "dmohanraj@mondee.com"
         },
-        "eventId": "={{ $('Google Calendar').item.json.id }}",
+        "eventId": "={{ $node[\"Google Calendar\"].json.id }}",
         "updateFields": {
           "attendeesUi": {
             "values": {
               "mode": "replace",
               "attendees": [
-                "={{ $('Webhook').item.json.body.EMAIL }}"
+                "={{ $node[\"Webhook\"].json.body.EMAIL }}"
               ]
             }
           },
-          "description": "=Interview scheduled via automation for {{ $('Webhook').item.json.body.NAME }}",
+          "description": "=Interview scheduled via automation for {{ $node[\"Webhook\"].json.body.NAME }}",
           "sendUpdates": "all",
-          "summary": "=Interview with {{ $('Webhook').item.json.body.NAME }} for {{ $('Webhook').item.json.body.ROLE }}",
+          "summary": "=Interview with {{ $node[\"Webhook\"].json.body.NAME }} for {{ $node[\"Webhook\"].json.body.ROLE }}",
           "visibility": "public"
         }
       },
@@ -561,6 +571,16 @@
               "id": "370bc388-99cc-498c-9fbf-d58f26f54e7b",
               "leftValue": "={{ $('Webhook').item.json.body.VOTE }}",
               "rightValue": "Strongly Recommended",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "2bdb936c-308e-41c3-b1c9-c6818e7fda56",
+              "leftValue": "={{ $('Webhook').item.json.body.VOTE }}",
+              "rightValue": "Shortlist",
               "operator": {
                 "type": "string",
                 "operation": "equals",
@@ -821,7 +841,7 @@
               "display": true,
               "type": "string",
               "canBeUsedToMatch": true,
-              "removed": false
+              "removed": true
             },
             {
               "id": "STATUS",
@@ -864,6 +884,70 @@
           "name": "Dmondee"
         }
       }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "get-data",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "4f7b6d60-1582-4850-a0d7-4329c810ef6f",
+      "name": "Webhook: Update JD1",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        224,
+        -640
+      ],
+      "webhookId": "999e4868-175a-46bc-bc34-4108089c34c4"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        640,
+        -640
+      ],
+      "id": "913aa651-4a05-41ad-aeb1-134bc1ac668c",
+      "name": "Respond to Webhook2"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1N1OKh98526_COyHx1nEkyCpclTBub9B78HXQNuY6yAs",
+          "mode": "list",
+          "cachedResultName": "CVs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1N1OKh98526_COyHx1nEkyCpclTBub9B78HXQNuY6yAs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1429086128,
+          "mode": "list",
+          "cachedResultName": "HR A",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1N1OKh98526_COyHx1nEkyCpclTBub9B78HXQNuY6yAs/edit#gid=1429086128"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        432,
+        -640
+      ],
+      "id": "7140f366-a815-4e92-a4fa-0fa332564933",
+      "name": "Get row(s) in sheet2",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "GeQ9p59WQErBu6TW",
+          "name": "Dmondee"
+        }
+      }
     }
   ],
   "pinData": {},
@@ -894,7 +978,7 @@
       "main": [
         [
           {
-            "node": "Basic LLM Chain",
+            "node": "Update row in sheet",
             "type": "main",
             "index": 0
           }
@@ -971,7 +1055,7 @@
       "main": [
         [
           {
-            "node": "Get row(s) in sheet",
+            "node": "Respond to Webhook",
             "type": "main",
             "index": 0
           }
@@ -1015,7 +1099,7 @@
       "main": [
         [
           {
-            "node": "Respond to Webhook",
+            "node": "Basic LLM Chain",
             "type": "main",
             "index": 0
           }
@@ -1043,6 +1127,28 @@
           }
         ]
       ]
+    },
+    "Webhook: Update JD1": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet2": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -1050,7 +1156,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "265f2ec3-4ac0-4b6e-8642-f4138dc51003",
+  "versionId": "5e9cf5cf-009d-49c7-8737-534631fa297e",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "e05dc43e891d806397f541c3c769686a6e00bd2ec3091115347cabb3ededfc54"

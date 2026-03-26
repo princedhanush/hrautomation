@@ -10,6 +10,10 @@
     --border-color: #E2E8F0;
     --text-main: #0F172A;
     --text-muted: #64748B;
+    --success: #10B981;
+    --warning: #F59E0B;
+    --danger: #EF4444;
+    --accent-color: #6366F1;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -90,7 +94,8 @@ body {
 .insights-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
 .kpi-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
 .kpi-title { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 600; margin-bottom: 0.5rem; }
-.kpi-value { font-size: 2.25rem; font-weight: 700; color: var(--text-main); }
+.kpi-value { font-size: 2.25rem; font-weight: 700; color: var(--text-main); transition: all 0.3s ease; }
+.kpi-card:hover .kpi-value { transform: scale(1.05); color: var(--primary); }
 
 /* Tables */
 .table-container { overflow-x: auto; }
@@ -174,6 +179,32 @@ textarea { height: 200px; resize: vertical; }
 }
 btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-/* Scheduler specific adjustments */
-#tab-scheduler .data-table td { vertical-align: middle; }
-#tab-scheduler .primary-btn { width: 100%; margin-top: 0.25rem; }
+/* Score Progress Bar */
+.score-container { display: flex; align-items: center; gap: 0.75rem; width: 100%; min-width: 120px; }
+.score-bar-bg { flex: 1; height: 8px; background: #E2E8F0; border-radius: 4px; overflow: hidden; }
+.score-bar-fill { height: 100%; border-radius: 4px; transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+.score-text { font-size: 0.85rem; font-weight: 700; min-width: 20px; }
+
+/* Magic Fill Button */
+.magic-fill-btn {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.4rem 0.8rem; background: #6366F1; color: white;
+    border: none; border-radius: 6px; font-size: 0.75rem; font-weight: 600;
+    cursor: pointer; transition: all 0.2s; margin-left: 0.5rem;
+}
+.magic-fill-btn:hover { background: #4F46E5; transform: scale(1.05); }
+
+/* Animations */
+.spinner {
+    display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.3);
+    border-radius: 50%; border-top-color: #fff; animation: spin 0.8s linear infinite;
+    margin-right: 8px; vertical-align: middle;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .sidebar { width: 70px; }
+    .nav-item span { display: none; }
+    .logo-text { display: none; }
+}

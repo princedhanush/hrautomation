@@ -1,0 +1,342 @@
+{
+  "name": "LinkedIn lead gen",
+  "nodes": [
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gemini-3-flash-preview",
+          "mode": "list",
+          "cachedResultName": "gemini-3-flash-preview"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are a sourcing assistant.\n\nBased on the hiring requirement, generate 5 Google search queries to find LinkedIn profiles.\n\nUse this format:\nsite:linkedin.com/in \"job title\" \"location\"\n\nRequirement:\nRole: {{ $json.body.Role }}\nLocation: {{ $json.body.Location }}\nSkills: {{ $json.body.Skills }}\nExperience: {{ $json.body.Experience }}\n\nReturn JSON:\n\n{\n \"queries\":[\n  \"\",\n  \"\",\n  \"\",\n  \"\",\n  \"\"\n ]\n}\n\nReturn ONLY Valid JSON\nDo not include code markdown or explanation"
+            },
+            {
+              "content": "=Look for above constraints and make sure this \nRequirement:\nRole: {{ $json.body.Role }}\nLocation: {{ $json.body.Location }}\nSkills: {{ $json.body.Skills }}\nExperience: {{ $json.body.Experience }}\n\nwas satisfied\n\n"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.ollama",
+      "typeVersion": 1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "65eea400-29b1-4336-bb48-6f1715d5534e",
+      "name": "Message a model2",
+      "credentials": {
+        "ollamaApi": {
+          "id": "b1FOZcagW3wNyTKE",
+          "name": "for Mail Generator"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get raw content\nlet raw = $json.content;\n\n// Clean unwanted characters\nraw = raw\n  .replace(/\\n/g, '')\n  .replace(/\\r/g, '')\n  .replace(/\\t/g, '')\n  .trim();\n\n// Parse JSON safely\nconst parsed = JSON.parse(raw);\n\n// Extract queries\nconst queries = parsed.queries || [];\n\n// Return each query as item\nreturn queries.map(q => ({\n  json: {\n    query: q\n  }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        0
+      ],
+      "id": "fbb12d79-f967-451a-9604-9cb05ab17f4a",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "googleSerpTopHundred",
+        "query": "={{ $json.query }}",
+        "location": {
+          "__rl": true,
+          "value": "India Urban,India",
+          "mode": "list",
+          "cachedResultName": "India Urban,India"
+        },
+        "additionalFields": {},
+        "requestOptions": {}
+      },
+      "type": "@serphouse/n8n-nodes-serphouse.serphouse",
+      "typeVersion": 1,
+      "position": [
+        768,
+        0
+      ],
+      "id": "7391714f-77fb-4c99-8a45-0000b6b18514",
+      "name": "Google SERP (Top 100 results)",
+      "credentials": {
+        "serphouseApi": {
+          "id": "9Mxl0S5fUvWierC9",
+          "name": "SERPHouse account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const output = [];\n\nfor (const item of items) {\n\n  const organic = item.json.results?.results?.organic || [];\n\n  for (const r of organic) {\n\n    if (r.link && r.link.includes(\"linkedin.com/in\")) {\n\n      const parts = r.title ? r.title.split(\" - \") : [];\n\n      output.push({\n        json: {\n          name: parts[0] || \"\",\n          role: parts[1] || \"\",\n          linkedin_url: r.link,\n          summary: r.snippet || \"\"\n        }\n      });\n\n    }\n\n  }\n\n}\n\nreturn output;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        976,
+        0
+      ],
+      "id": "11b7ba51-b80b-4718-a9cf-5e59ed21f21b",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1jYRe1KR3-JajQpYMPQqg7M-AfZ0ukzvNnJd4xeewMEc",
+          "mode": "list",
+          "cachedResultName": "Linkedin Scraper",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1jYRe1KR3-JajQpYMPQqg7M-AfZ0ukzvNnJd4xeewMEc/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "March 16",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1jYRe1KR3-JajQpYMPQqg7M-AfZ0ukzvNnJd4xeewMEc/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "name": "={{ $json.name }}",
+            "role": "={{ $json.role }}",
+            "linkedin_url": "={{ $json.linkedin_url }}",
+            "summary": "={{ $json.summary }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "role",
+              "displayName": "role",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedin_url",
+              "displayName": "linkedin_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "summary",
+              "displayName": "summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1184,
+        0
+      ],
+      "id": "c6103447-5251-4b98-9987-a517edeb72a9",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "GeQ9p59WQErBu6TW",
+          "name": "Dmondee"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "linkedinfind",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -16,
+        0
+      ],
+      "id": "3c5c094f-ae54-48d0-a2c8-02d547c4d819",
+      "name": "Webhook",
+      "webhookId": "f377599a-5c88-4fab-9d11-1e1901ecf035"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1392,
+        0
+      ],
+      "id": "d8a5017b-4391-48b7-bfde-f5d09a1d65e0",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "localhost:5678",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
+            "content-length": "105",
+            "accept": "*/*",
+            "accept-encoding": "gzip, br",
+            "accept-language": "en-US,en;q=0.9",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-connecting-ip": "183.82.114.18",
+            "cf-ew-via": "15",
+            "cf-ipcountry": "IN",
+            "cf-ray": "9e0da711ffa23ef6-HYD",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-worker": "n8n.cloud",
+            "content-type": "application/json",
+            "origin": "http://localhost:3000",
+            "priority": "u=1, i",
+            "referer": "http://localhost:3000/",
+            "sec-ch-ua": "\"Chromium\";v=\"146\", \"Not-A.Brand\";v=\"24\", \"Microsoft Edge\";v=\"146\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\"",
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "cross-site",
+            "x-forwarded-for": "183.82.114.18, 172.68.166.162",
+            "x-forwarded-host": "localhost:5678",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "traefik-prod-users-gwc-115-69c84c576f-w2k22",
+            "x-is-trusted": "yes",
+            "x-real-ip": "183.82.114.18"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "Role": "HR executive",
+            "Experience": "4",
+            "Location": "Hyderabd",
+            "Skills": "CRM, ATS, Business Intelligence"
+          },
+          "webhookUrl": "https://localhost:5678/webhook/linkedinfind",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Message a model2": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Google SERP (Top 100 results)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google SERP (Top 100 results)": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Message a model2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "20266e91-8896-47d5-ab9d-e9d0d08f0435",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e05dc43e891d806397f541c3c769686a6e00bd2ec3091115347cabb3ededfc54"
+  },
+  "id": "r5tO9j34FiBUiDg3",
+  "tags": []
+}

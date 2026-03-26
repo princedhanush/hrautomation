@@ -7,12 +7,12 @@
         "binaryPropertyName": "CV",
         "options": {}
       },
-      "id": "6d61859a-9371-463a-b68f-ed240a319cc7",
+      "id": "b3af712f-027c-42e1-91c6-437fbf738267",
       "name": "Extract from File",
       "type": "n8n-nodes-base.extractFromFile",
       "position": [
-        -1088,
-        608
+        -496,
+        720
       ],
       "typeVersion": 1
     },
@@ -42,12 +42,12 @@
           "systemPromptTemplate": "You are an expert extraction algorithm.\nOnly extract relevant information from the text.\nIf you do not know the value of an attribute asked to extract, you may omit the attribute's value."
         }
       },
-      "id": "0336cc21-faa2-4f77-8ced-b46f620423d7",
+      "id": "318b650f-470c-4dd8-af56-1488ecc91db1",
       "name": "Qualifications",
       "type": "@n8n/n8n-nodes-langchain.informationExtractor",
       "position": [
-        -768,
-        720
+        -176,
+        832
       ],
       "typeVersion": 1
     },
@@ -62,12 +62,12 @@
           }
         }
       },
-      "id": "afa3dec0-4612-4e20-8c09-a4dc6ee97244",
+      "id": "15fc283b-e7de-498e-b99d-5a69af58fbd1",
       "name": "Summarization Chain",
       "type": "@n8n/n8n-nodes-langchain.chainSummarization",
       "position": [
-        -32,
-        592
+        560,
+        704
       ],
       "typeVersion": 2
     },
@@ -77,12 +77,12 @@
         "combineBy": "combineAll",
         "options": {}
       },
-      "id": "a9be7156-5193-4bca-9154-b31ba051c392",
+      "id": "306976f1-4617-4813-88cd-8084dbe8b5fe",
       "name": "Merge",
       "type": "n8n-nodes-base.merge",
       "position": [
-        -272,
-        592
+        320,
+        704
       ],
       "typeVersion": 3
     },
@@ -237,18 +237,18 @@
         },
         "options": {}
       },
-      "id": "3a7c1a3e-ae0b-46fc-8f27-16bb2adf51d8",
+      "id": "76345f66-89f2-4786-a046-354c27b4814b",
       "name": "Google Sheets",
       "type": "n8n-nodes-base.googleSheets",
       "position": [
-        1040,
-        592
+        1632,
+        704
       ],
       "typeVersion": 4.5,
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "2GK3Ea4f0A6Is8AL",
-          "name": "Mondee"
+          "id": "GeQ9p59WQErBu6TW",
+          "name": "Dmondee"
         }
       }
     },
@@ -257,19 +257,19 @@
         "schemaType": "manual",
         "inputSchema": "{\n\t\"type\": \"object\",\n\t\"properties\": {\n\t\t\"vote\": {\n\t\t\t\"type\": \"string\"\n\t\t},\n\t\t\"consideration\": {\n\t\t\t\"type\": \"string\"\n\t\t}\n\t}\n}"
       },
-      "id": "6706749b-c1d9-48e5-8f9e-49ec9193e7a9",
+      "id": "ec342aa8-fc2a-46b9-88bc-10e8665a75b9",
       "name": "Structured Output Parser",
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "position": [
-        800,
-        800
+        1392,
+        912
       ],
       "typeVersion": 1.2
     },
     {
       "parameters": {
         "promptType": "define",
-        "text": "=Job Profile Required:{{ $json.JD_Text }}\nCandidate Summary:\n{{ $('Summarization Chain').item.json.response.text }}",
+        "text": "=Job Targetted Role: {{ $json.Role }}\nJob Profile Required:{{ $json.JD_Text }}\nCandidate Summary:\n{{ $('Summarization Chain').item.json.response.text }}",
         "hasOutputParser": true,
         "messages": {
           "messageValues": [
@@ -279,12 +279,12 @@
           ]
         }
       },
-      "id": "0c239cba-8951-440a-a040-11736bc2fb65",
+      "id": "399773ad-60df-4c33-b338-f3eae90a45ca",
       "name": "HR Expert",
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "position": [
-        640,
-        592
+        1232,
+        704
       ],
       "typeVersion": 1.5
     },
@@ -297,12 +297,12 @@
           "systemPromptTemplate": "You are an expert extraction algorithm.\nOnly extract relevant information from the text.\nIf you do not know the value of an attribute asked to extract, you may omit the attribute's value."
         }
       },
-      "id": "2fadbd45-ecc7-414f-9a46-3fe4fdf7fd40",
+      "id": "37fc97be-008a-4292-8b40-38d8a467a0c5",
       "name": "Personal Data",
       "type": "@n8n/n8n-nodes-langchain.informationExtractor",
       "position": [
-        -768,
-        528
+        -176,
+        640
       ],
       "typeVersion": 1
     },
@@ -326,18 +326,18 @@
         },
         "options": {}
       },
-      "id": "bd193771-9bec-442d-b6dd-4b08a1456d94",
+      "id": "944bdc98-ee54-42fd-8165-7ba965d11cc1",
       "name": "Upload CV",
       "type": "n8n-nodes-base.googleDrive",
       "position": [
-        -1088,
-        432
+        -496,
+        544
       ],
       "typeVersion": 3,
       "credentials": {
         "googleDriveOAuth2Api": {
-          "id": "7NcFSLQjaXRAcab4",
-          "name": "Google Drive OAuth2 API"
+          "id": "bsH0mVxTWcx5NlWi",
+          "name": "Mondee Drive"
         }
       }
     },
@@ -347,12 +347,12 @@
         "width": 540,
         "color": 3
       },
-      "id": "d0c20267-0575-4504-97b0-26aa3d7f687b",
+      "id": "e24d7d41-6d59-4473-83ee-9828c3286e56",
       "name": "Sticky Note",
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -1488,
-        128
+        -896,
+        240
       ],
       "typeVersion": 1
     },
@@ -362,12 +362,12 @@
         "height": 420,
         "width": 300
       },
-      "id": "72f47630-a061-45e9-af95-425013fabf42",
+      "id": "ff29ed9b-5b25-40df-b0ae-6c9e9492f94a",
       "name": "Sticky Note1",
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -1168,
-        352
+        -576,
+        464
       ],
       "typeVersion": 1
     },
@@ -377,12 +377,12 @@
         "height": 440,
         "width": 360
       },
-      "id": "36c59988-753b-4753-a571-ba5a2ed909ad",
+      "id": "e6a116db-2175-49a9-846a-467a4ebb5e37",
       "name": "Sticky Note2",
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -816,
-        432
+        -224,
+        544
       ],
       "typeVersion": 1
     },
@@ -392,12 +392,12 @@
         "height": 240,
         "width": 320
       },
-      "id": "2ca9def9-e9b5-45be-abeb-82f86c588123",
+      "id": "d2273194-4435-4321-ae7e-b76eeea096c0",
       "name": "Sticky Note3",
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -64,
-        512
+        528,
+        624
       ],
       "typeVersion": 1
     },
@@ -407,12 +407,12 @@
         "height": 240,
         "width": 220
       },
-      "id": "cc927e26-f9c4-455e-be58-7c7fbd23e8bf",
+      "id": "9a201cec-0e85-4549-814b-8836e7d30ac4",
       "name": "Sticky Note4",
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        320,
-        512
+        912,
+        624
       ],
       "typeVersion": 1
     },
@@ -422,12 +422,12 @@
         "height": 240,
         "width": 360
       },
-      "id": "b1fd22a7-4816-40ac-a099-3938ef4e7af9",
+      "id": "5b2edbe4-8c55-4453-83fe-e27fda3b81a9",
       "name": "Sticky Note5",
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        576,
-        512
+        1168,
+        624
       ],
       "typeVersion": 1
     },
@@ -439,32 +439,32 @@
       "type": "@n8n/n8n-nodes-langchain.lmOllama",
       "typeVersion": 1,
       "position": [
-        -240,
-        1184
+        352,
+        1296
       ],
-      "id": "07bdecc6-d346-4d67-b2dc-aab1c0639724",
+      "id": "e10eca4b-98f6-46b2-8b5f-8d2ac23e6f0d",
       "name": "Ollama Model",
       "credentials": {
         "ollamaApi": {
-          "id": "5QgdmlzJHuDdwbGt",
-          "name": "Ollama account 7"
+          "id": "Wb6U8xzphkqm2Hyc",
+          "name": "Mondee HR automation"
         }
       }
     },
     {
       "parameters": {
         "httpMethod": "POST",
-        "path": "c2b4039a-d255-4a16-8722-9152813900f3",
+        "path": "profile-evoluation",
         "responseMode": "responseNode",
         "options": {}
       },
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        -1696,
-        608
+        -1104,
+        720
       ],
-      "id": "f022e334-5872-4bc1-b84c-3abdfdd373b4",
+      "id": "00213a49-51b0-40e2-9657-0dcd0920ac65",
       "name": "Webhook",
       "webhookId": "c2b4039a-d255-4a16-8722-9152813900f3"
     },
@@ -476,10 +476,10 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        1248,
-        592
+        1840,
+        704
       ],
-      "id": "be852779-ade3-4b2d-aa4a-6fb2a4cc74af",
+      "id": "2d30b6f6-9fe2-462d-9bf6-bae0e4c6d0b8",
       "name": "Respond to Webhook"
     },
     {
@@ -503,15 +503,250 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        384,
-        592
+        976,
+        704
       ],
-      "id": "37bbeb59-c952-49c1-8c7f-464cff77e67f",
+      "id": "b8e52780-c99c-4ee5-b0a9-b4e82c47c11d",
       "name": "Get row(s) in sheet",
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "2GK3Ea4f0A6Is8AL",
-          "name": "Mondee"
+          "id": "GeQ9p59WQErBu6TW",
+          "name": "Dmondee"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "path": "get-results",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "a01285b5-06d2-48cf-9464-9a41f1bd05fc",
+      "name": "Webhook: Get Results",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        1008,
+        -144
+      ],
+      "webhookId": "f15c3387-eb9d-40b9-a150-c8f67545ab8b"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1N1OKh98526_COyHx1nEkyCpclTBub9B78HXQNuY6yAs",
+          "mode": "list",
+          "cachedResultName": "CVs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1N1OKh98526_COyHx1nEkyCpclTBub9B78HXQNuY6yAs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1429086128,
+          "mode": "list",
+          "cachedResultName": "HR A",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1N1OKh98526_COyHx1nEkyCpclTBub9B78HXQNuY6yAs/edit#gid=1429086128"
+        },
+        "options": {}
+      },
+      "id": "3621de57-3e60-4d9d-9ffc-189af743364b",
+      "name": "Fetch Candidates",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 3,
+      "position": [
+        1232,
+        -144
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "GeQ9p59WQErBu6TW",
+          "name": "Dmondee"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "id": "fd7bcdc6-626a-436c-b410-c9097495f658",
+      "name": "Respond: Results",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1424,
+        -144
+      ]
+    },
+    {
+      "parameters": {
+        "path": "get-jd",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "64ff3434-a587-4744-bb36-6566da2e8763",
+      "name": "Webhook: Get JD",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        304,
+        144
+      ],
+      "webhookId": "2da6c8a0-5b9e-4236-8b50-3ad4878713bf"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1N1OKh98526_COyHx1nEkyCpclTBub9B78HXQNuY6yAs",
+          "mode": "list",
+          "cachedResultName": "CVs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1N1OKh98526_COyHx1nEkyCpclTBub9B78HXQNuY6yAs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1984344848,
+          "mode": "list",
+          "cachedResultName": "AI Evaluation Settings",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1N1OKh98526_COyHx1nEkyCpclTBub9B78HXQNuY6yAs/edit#gid=1984344848"
+        },
+        "options": {}
+      },
+      "id": "0a11da74-52bd-49ad-9103-6594b37235ba",
+      "name": "Fetch JD",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 3,
+      "position": [
+        512,
+        144
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "GeQ9p59WQErBu6TW",
+          "name": "Dmondee"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "id": "f6146f40-9dcd-4569-bd5b-0c3463db4bf9",
+      "name": "Respond: JD",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        704,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "update-jd",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "af22dbfe-553c-4dcd-91d6-8c4ce899841c",
+      "name": "Webhook: Update JD",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        304,
+        320
+      ],
+      "webhookId": "999e4868-175a-46bc-bc34-4108089c34c4"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        720,
+        320
+      ],
+      "id": "789fa1cc-077f-435e-8fa0-fbb1066f82f7",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1N1OKh98526_COyHx1nEkyCpclTBub9B78HXQNuY6yAs",
+          "mode": "list",
+          "cachedResultName": "CVs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1N1OKh98526_COyHx1nEkyCpclTBub9B78HXQNuY6yAs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1984344848,
+          "mode": "list",
+          "cachedResultName": "AI Evaluation Settings",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1N1OKh98526_COyHx1nEkyCpclTBub9B78HXQNuY6yAs/edit#gid=1984344848"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_number": 2,
+            "JD_Text": "={{ $json.body.JD_Text }}",
+            "Role": "={{ $json.body.Role }}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "JD_Text",
+              "displayName": "JD_Text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Role",
+              "displayName": "Role",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        512,
+        320
+      ],
+      "id": "c44a328b-6f86-4080-adcb-28be32db4dc9",
+      "name": "Update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "GeQ9p59WQErBu6TW",
+          "name": "Dmondee"
         }
       }
     }
@@ -663,19 +898,84 @@
           }
         ]
       ]
+    },
+    "Webhook: Get Results": {
+      "main": [
+        [
+          {
+            "node": "Fetch Candidates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Candidates": {
+      "main": [
+        [
+          {
+            "node": "Respond: Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook: Get JD": {
+      "main": [
+        [
+          {
+            "node": "Fetch JD",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch JD": {
+      "main": [
+        [
+          {
+            "node": "Respond: JD",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook: Update JD": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
   "settings": {
     "executionOrder": "v1",
-    "binaryMode": "separate",
-    "availableInMCP": false
+    "binaryMode": "separate"
   },
-  "versionId": "a2942b85-66fb-45df-a044-4a46012c133f",
+  "versionId": "76328341-93ab-4358-ab9e-8ddb8791fb8e",
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "261fd5aca1545bcb0a6afb7acb08f04ae3076b5defd23a381f7077f851be4d92"
+    "instanceId": "e05dc43e891d806397f541c3c769686a6e00bd2ec3091115347cabb3ededfc54"
   },
-  "id": "WDDshJpt4CerzFzq",
+  "id": "wx8vk8i2PofpAdQ1",
   "tags": []
 }

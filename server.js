@@ -60,10 +60,28 @@ try {
             value TEXT
         )`);
 
+        // Create Leads table for tagged candidates
+        db.run(`CREATE TABLE IF NOT EXISTS leads (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT,
+            role TEXT,
+            linkedin_url TEXT,
+            summary TEXT,
+            tag TEXT,
+            folder TEXT,
+            status TEXT DEFAULT 'Stored',
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )`);
+
+        // Add folder column if it doesn't exist (handle existing DB)
+        db.run(`ALTER TABLE leads ADD COLUMN folder TEXT`, (err) => {
+            if (err) { /* ignore if already exists */ }
+        });
+
         // Insert default JD if none exists
         const defaultJD = `We are Mondee, a leading travel technology company, and we are looking for a MarTech professional with around 3 years of experience. The ideal candidate should have a strong understanding of marketing technologies, including CRM platforms, marketing automation tools, analytics systems, and digital campaign management.`;
         db.run(`INSERT OR IGNORE INTO settings (key, value) VALUES ('job_description', ?)`, [defaultJD]);
-        db.run(`INSERT OR IGNORE INTO settings (key, value) VALUES ('webhook_url', 'https://dhanushmondee.app.n8n.cloud/webhook/profile-evoluation')`);
+        db.run(`INSERT OR REPLACE INTO settings (key, value) VALUES ('webhook_url', 'http://localhost:5678/webhook/profile-evoluation')`);
     });
 } catch (e) {
     console.warn("Failed to load sqlite3 native bindings (expected on Vercel):", e.message);
@@ -146,6 +164,36 @@ app.get('/api/candidates', (req, res) => {
     db.all(`SELECT * FROM candidates ORDER BY created_at DESC`, [], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json(rows);
+    });
+});
+
+// LEADS API //////////////////////////////////////////////////////
+
+// GET all stored leads
+app.get('/api/leads', (req, res) => {
+    db.all(`SELECT * FROM leads ORDER BY created_at DESC`, [], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(rows);
+    });
+});
+
+// POST to save a lead
+app.post('/api/leads', (req, res) => {
+    const { name, role, linux_url, summary, tag, folder } = req.body;
+    const url = linux_url || req.body.linkedin_url;
+    
+    db.run(`INSERT INTO leads (name, role, linkedin_url, summary, tag, folder) VALUES (?, ?, ?, ?, ?, ?)`,
+        [name, role, url, summary, tag, folder], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true, id: this.lastID });
+    });
+});
+
+// DELETE a lead
+app.delete('/api/leads/:id', (req, res) => {
+    db.run(`DELETE FROM leads WHERE id = ?`, [req.params.id], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true });
     });
 });
 
