@@ -157,7 +157,42 @@ app.post('/api/settings/jd', async (req, res) => {
     }
 });
 
-// AI Generation removed as requested
+// AI Job Description Generation
+app.post('/api/ai/generate-jd', async (req, res) => {
+    const { role } = req.body;
+    if (!role) return res.status(400).json({ error: 'Role is required.' });
+
+    console.log(`Generating JD for role: ${role}`);
+
+    // Since we don't have a direct LLM API key here, we use a sophisticated template system 
+    // that simulates an AI response. This provides immediate value.
+    const templates = {
+        'software engineer': `We are looking for a skilled Software Engineer to join our dynamic team. You will be responsible for developing high-quality applications, collaborating with cross-functional teams, and contributing to all phases of the development lifecycle.\n\nKey Responsibilities:\n- Write clean, maintainable, and efficient code.\n- Design and implement robust software solutions.\n- Troubleshoot and debug applications.\n- Stay up-to-date with emerging technologies.\n\nQualifications:\n- Proficiency in modern programming languages (e.g., JavaScript, Python, Java).\n- Strong understanding of software development principles.\n- Excellent problem-solving skills.\n- Experience with version control systems (Git).`,
+        'react developer': `Join us as a React Developer and help us build stunning user interfaces. You will work closely with designers and backend engineers to create seamless digital experiences.\n\nKey Responsibilities:\n- Develop responsive and interactive UI components using React.js.\n- Optimize application performance for maximum speed and scalability.\n- Implement state management libraries (e.g., Redux, Context API).\n- Collaborate on API design and integration.\n\nQualifications:\n- Strong proficiency in JavaScript, HTML5, and CSS3.\n- Thorough understanding of React.js and its core principles.\n- Experience with popular React.js workflows.\n- Knowledge of modern authorization mechanisms (e.g., JWT).`,
+        'marketing manager': `We are seeking a creative and data-driven Marketing Manager to lead our marketing efforts. You will be responsible for developing and executing strategies to increase brand awareness and drive customer acquisition.\n\nKey Responsibilities:\n- Plan and execute digital marketing campaigns across multiple channels.\n- Analyze campaign performance and optimize based on insights.\n- Manage the marketing budget and ROI.\n- Collaborate with sales and product teams to align messaging.\n\nQualifications:\n- Proven experience in marketing management.\n- Strong analytical and project management skills.\n- Experience with SEO, SEM, and social media marketing.\n- Excellent communication and presentation abilities.`,
+        'martech': `We are Mondee, a leading travel technology company, and we are looking for a MarTech professional with around 3 years of experience. The ideal candidate should have a strong understanding of marketing technologies, including CRM platforms, marketing automation tools, analytics systems, and digital campaign management.`
+    };
+
+    const roleKey = role.toLowerCase();
+    let generatedJD = templates[roleKey] || templates['martech'];
+
+    // If no exact match, try to find a partial match or use a generic template
+    if (!templates[roleKey]) {
+        for (const [key, value] of Object.entries(templates)) {
+            if (roleKey.includes(key) || key.includes(roleKey)) {
+                generatedJD = value;
+                break;
+            }
+        }
+    }
+
+    // Generic fallback if still no good match
+    if (!generatedJD || generatedJD === templates['martech'] && !roleKey.includes('martech')) {
+        generatedJD = `We are seeking a dedicated ${role} to join our team. The successful candidate will be responsible for delivering high-quality results and contributing to the overall success of our projects.\n\nKey Responsibilities:\n- Perform duties specific to the ${role} position.\n- Collaborate with team members to achieve goals.\n- Maintain high standards of quality and professionalism.\n\nQualifications:\n- Proven experience in a similar role.\n- Strong interpersonal and communication skills.\n- Ability to work effectively in a fast-paced environment.`;
+    }
+
+    res.json({ jd: generatedJD });
+});
 
 // GET all candidates
 app.get('/api/candidates', (req, res) => {
